@@ -1,16 +1,15 @@
 Package: Rclust
 Type: Package
-Title: Partitional Clustering High Dimensional Data with P-Values using parallel processing
-Version: 1.0.0
-Authors@R: person("George", "von Borries", email = "gborries@unb.br",
+Title: Partitional Clustering High Dimensional Data Based on P-Values Using Parallel Processing
+Version: 0.0.1
+Authors@R: person("Rafael", "Lins", email = "rdasivalins@gmail.com",
                   role = c("aut", "cre"))
-           person("Rafael", "Lins", email = "rdasivalins@gmail.com",
-                  role = c("aut", "cre"))
-Maintainer: George von Borries <gborries@unb.br>
-Description: This package provides clustering of HDLSS and HDLLSS data based on P-values.
+           person("George", "von Borries", email = "gborries@unb.br",
+                  role = c("aut"))
+Maintainer: Rafael Lins <rdasivalins@gmail.com>
+Description: Provides clustering of HDLSS and HDLLSS data based on P-values.
 Depends: R (>= 3.1.0)
 Imports: stats, parallel
-Suggests: ggplot2
 License: GPL (>= 2)
-Encoding: UTF-8
+URL: http://github.com/rafaelslins/Rclust
 LazyData: true
