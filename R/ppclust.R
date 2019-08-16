@@ -1,6 +1,6 @@
 #' Clustering Algorithm to HDLSS data.
 #'
-#' @param dataset A data matrix.
+#' @param dataset A data set.
 #' @param alpha Significance (alpha) level.
 #' @return A vector of integers indicating the cluster to which each point is allocated.
 #' @return A cross table of P-values.
