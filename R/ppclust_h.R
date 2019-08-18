@@ -1,16 +1,30 @@
 #' Clustering Algorithm to HDLSS data.
 #'
-#' @param dataset A data matrix.
-#' @param alpha Significance (alpha) level.
-#' @param n.cores A number processor cores.
-#' @return A vector of integers indicating the cluster to which each point is allocated.
-#' @return A cross table of P-values.
+#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
+#' @param n.cores A number processor cores (see detectCores).
+#' @param ... not used.
+#' 
+#' @return Results
+#' 
+#' A vector of integers indicating the cluster to which each variable is allocated and a cluster cross table of P-values.
+#' 
+#' @examples 
+#' #data(diflogadenoma) # loads data
+#' #cl <- ppclust_h(diflogadenoma[, 10:13], n.cores = 2)
+#' #cl
+#' @importFrom stats aggregate cov median pnorm reshape var
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom parallel clusterExport makeCluster parApply stopCluster
+#' @export
 
-
-ppclust_h <- function(dataset, alpha, n.cores = 1) {
+ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
 
   if (any(apply(dataset, 2, is.numeric) == FALSE))
     stop('dataset contains non-numeric values')
+  
+  if (alpha > 0 & alpha < 1)
+    stop("'alpha' must be a real number in the range (0,1)")
 
   anovarank <- function(data, colms, cols4, colv22, coltal2)
   {
@@ -68,8 +82,8 @@ ppclust_h <- function(dataset, alpha, n.cores = 1) {
       n.int <- 0
       while (!all(count[[1]] %in% count[[2]]) & n.int < 13) {
         environment(cts) <- .GlobalEnv
-        parallel::clusterExport(cl, varlist = c("cts"), envir = environment())
-        mst.p <- parallel::parApply(cl, matrix(datax, ncol = 1), 1,
+        clusterExport(cl, varlist = c("cts"), envir = environment())
+        mst.p <- parApply(cl, matrix(datax, ncol = 1), 1,
                                     function(x) (as.numeric(cts) - x) ** 2)
         mst.p <- t(mst.p)
 
@@ -141,15 +155,15 @@ ppclust_h <- function(dataset, alpha, n.cores = 1) {
     c(fibseq, fibseq[x - 1] + fibseq[x - 2])
   }
 
-  cl <- parallel::makeCluster(n.cores)
+  cl <- makeCluster(n.cores)
   ranked.data <- matrix(rank(c(as.matrix(dataset)), na.last = 'keep'),
                         nrow = nrow(dataset), ncol = ncol(dataset))
   ncole <- ncol(ranked.data)
   nrowe <- nrow(ranked.data)
   environment(sigma4est) <- .GlobalEnv
-  parallel::clusterExport(cl, varlist = c("sigma4est"), envir = environment())
+  clusterExport(cl, varlist = c("sigma4est"), envir = environment())
 
-  X <- parallel::parApply(cl, ranked.data, 1, function(x) {
+  X <- parApply(cl, ranked.data, 1, function(x) {
     x1 <- x[!is.na(x)]
     c(sigma4est(x1), var(x1), length(x1), mean(x1))
   })
@@ -175,7 +189,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1) {
   pvalue <- do.call('anovarank', list(ppmatrix, cms, cs4, cv22, ctal2))
 
   if (pvalue > alpha) {
-    parallel::stopCluster(cl)
+    stopCluster(cl)
     ppmatrix[, cgr] <- g
     return(list(cluster = ppmatrix[, cgr],
                 P.values = pvalue))
@@ -225,7 +239,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1) {
     close(pb)
   }
 
-  parallel::stopCluster(cl)
+  stopCluster(cl)
 
   resul <- do.call('groupopt', list(ppmatrix, cgr, alpha))
   ppmatrix[, cgr] <- resul$cluster

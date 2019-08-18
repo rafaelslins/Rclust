@@ -1,15 +1,31 @@
-#' Clustering Algorithm to HDLSS data.
-#'
-#' @param dataset A data set.
-#' @param alpha Significance (alpha) level.
-#' @return A vector of integers indicating the cluster to which each point is allocated.
-#' @return A cross table of P-values.
+#' @title Clustering Algorithm to HDLSS data.
+#' @description Clustering Algorithm to HDLSS data.
+#' @usage ppclust(dataset, alpha, ...) 
+#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
+#' @param ... not used.
+#' 
+#' @return Results
+#' 
+#' A vector of integers indicating the cluster to which each variable is allocated and a cluster cross table of P-values.
+#' 
+#' @examples 
+#' #data(diflogadenoma) # loads data
+#' #cl <- ppclust(diflogadenoma[, 10:13])
+#' #cl
+#' @importFrom stats aggregate cov median pnorm reshape var
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @export
 
-ppclust <- function(dataset, alpha) {
+
+ppclust <- function(dataset, alpha, ...) {
 
   if (any(apply(dataset, 2, is.numeric) == FALSE))
     stop('dataset contains non-numeric values')
 
+  if (alpha > 0 & alpha < 1)
+    stop("'alpha' must be a real number in the range (0,1)")
+  
   anovarank <- function(data, ncole, cols4)
   {
     if (is.vector(data)) return(1)
