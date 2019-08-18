@@ -1,15 +1,29 @@
 #' Clustering Algorithm to HDLLSS data.
 #'
-#' @param dataset A matrix of data.
-#' @param id A number.
-#' @param rep A number.
-#' @param alpha Significance (alpha) level.
-#' @param n.cores A number processor cores.
-#' @return A vector of integers indicating the cluster to which each point is allocated.
-#' @return A cross table of P-values.
+#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param id A integer number specifying the column of dataset with the variable id.
+#' @param rep A integer number specifying the column of dataset indicating each variable replication number.
+#' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
+#' @param n.cores A number processor cores (see detectCores).
+#' @param ... not used.
+#' 
+#' @return Results
+#' 
+#' A vector of integers indicating the cluster to which each variable is allocated and a cluster cross table of P-values.
+#' 
+#' @importFrom stats aggregate cov median pnorm reshape var
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom parallel clusterExport makeCluster parApply parLapply stopCluster
+#' @export
 
-ppclustel_h <- function(dataset, id, rep, alpha, n.cores = 1){
+ppclustel_h <- function(dataset, id, rep, alpha, n.cores = 1, ...){
 
+  if (any(apply(dataset, 2, is.numeric) == FALSE))
+    stop('dataset contains non-numeric values')
+  
+  if (alpha > 0 & alpha < 1)
+    stop("'alpha' must be a real number in the range (0,1)")
+  
   anovalong <- function(data, t1, tb)
   {
     if (is.vector(data)) return(1)
@@ -127,22 +141,22 @@ ppclustel_h <- function(dataset, id, rep, alpha, n.cores = 1){
 
   ds1 <- split(ds1[, t1:tb], fac)
 
-  cl <- parallel::makeCluster(n.cores)
-  cov2 <- parallel::parLapply(cl, ds1, function(x) sum(cov(x) ** 2))
+  cl <- makeCluster(n.cores)
+  cov2 <- parLapply(cl, ds1, function(x) sum(cov(x) ** 2))
   cov2 <- as.numeric(unlist(cov2))
   cov2p <- 2 * cov2 / (b * count * (count - 1))
 
-  result1 <- parallel::parLapply(cl, ds1,
+  result1 <- parLapply(cl, ds1,
                                  function(x) apply(x, 2,
                                                    function(y) mean(y, na.rm = T)))
   result1 <- matrix(unlist(result1), byrow = T, ncol = b, nrow = a)
-  means <- parallel::parApply(cl, result1, 1, function(x) mean(x,na.rm = T))
+  means <- parApply(cl, result1, 1, function(x) mean(x,na.rm = T))
 
-  result2 <- parallel::parLapply(cl, ds1,
+  result2 <- parLapply(cl, ds1,
                                  function(x) apply(x, 2,
                                                    function(y) sum((y-mean(y))**2, na.rm = T)))
   result2 <- matrix(unlist(result2), byrow = T, ncol = b, nrow = a)
-  msep <- parallel::parApply(cl, result2, 1, function(x) sum(x,na.rm = T))
+  msep <- parApply(cl, result2, 1, function(x) sum(x,na.rm = T))
   msep <- msep / (b * count * (count - 1))
 
   ppmatrix <- data.frame(unique(fac), means, msep, cov2p, rep(99999, a), result1)
@@ -161,7 +175,7 @@ ppclustel_h <- function(dataset, id, rep, alpha, n.cores = 1){
   pvalue <- do.call('anovalong',list(ppmatrix, t1, tb))
 print(pvalue)
   if (pvalue > alpha) {
-    parallel::stopCluster(cl)
+    stopCluster(cl)
     ppmatrix[, cgr] <- g
     return(list(cluster = ppmatrix[, cgr],
                 P.values = pvalue))
@@ -208,7 +222,7 @@ print(pvalue)
     setTxtProgressBar(pb, fend)
     close(pb)
 
-    parallel::stopCluster(cl)
+    stopCluster(cl)
 
     ppmatrix[, cgr] <- as.numeric(factor(ppmatrix[, cgr]))
     resul <- do.call('groupopt',list(ppmatrix, cgr, t1, tb, alpha))

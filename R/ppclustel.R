@@ -1,14 +1,27 @@
 #' Clustering Algorithm to HDLLSS data.
 #'
-#' @param dataset A matrix of data.
-#' @param id A number.
-#' @param rep A number.
-#' @param alpha Significance (alpha) level.
-#' @return A vector of integers indicating the cluster to which each point is allocated.
-#' @return A cross table of P-values.
+#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param id A integer number specifying the column of dataset with the variable id.
+#' @param rep A integer number specifying the column of dataset indicating each variable replication number.
+#' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
+#' @param ... not used.
+#' 
+#' @return Results
+#' 
+#' A vector of integers indicating the cluster to which each variable is allocated and a cluster cross table of P-values.
+#' 
+#' @importFrom stats aggregate cov median pnorm reshape var
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @export
 
-ppclustel <- function(dataset, id, rep, alpha) {
+ppclustel <- function(dataset, id, rep, alpha, ...) {
 
+  if (any(apply(dataset, 2, is.numeric) == FALSE))
+    stop('dataset contains non-numeric values')
+  
+  if (alpha > 0 & alpha < 1)
+    stop("'alpha' must be a real number in the range (0,1)")
+  
   anovalong <- function(resp, b)
   {
     if (is.vector(resp)) return(1)
