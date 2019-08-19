@@ -1,12 +1,17 @@
 ---
-title: "Rclust"
-output: rmarkdown::html_vignette
-vignette: >
- %\VignetteIndexEntry{Rclust}
- %\VignetteEngine{knitr::rmarkdown}
- \usepackage[utf8]{inputenc}
+output:
+ md_document:
+ variant: markdown_github
 ---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+ collapse = TRUE,
+ comment = "#>",
+ fig.path = "README-"
+)
+```
 
 
 ## Installation
@@ -14,7 +19,6 @@ vignette: >
 ```{r, eval=FALSE}
 devtools::install_github("rafaelslins/Rclust")
 ```
-
 
 ## Usage
 
@@ -30,9 +34,5 @@ library(Rclust)
 - G. von Borries. A SAS/JMP Integration for Implementation of a Clustering Algorithm for High Dimensional Low Sample Size Data. SAS Global Forum. Paper 283, 2009.
 
 - H. Wang and M. G. Akritas. Rank tests for anova with large number of factor levels. Journal of Nonparametric Statistics, 16(3-4):563–589, 2004. URL <https://doi.org/10.1080/10485250310001624774>.
-
-
-
-
 
 
