@@ -23,7 +23,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
   if (any(apply(dataset, 2, is.numeric) == FALSE))
     stop('dataset contains non-numeric values')
   
-  if (alpha > 0 & alpha < 1)
+  if (!(alpha > 0 & alpha < 1))
     stop("'alpha' must be a real number in the range (0,1)")
 
   anovarank <- function(data, colms, cols4, colv22, coltal2)
