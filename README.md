@@ -1,7 +1,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-Rclust <img src="tools/Rclust-logo.png" align="right" />
---------------------------------------------------------
+Rclust <img src="tools/Rclust-logo-small.png" align="right" />
+--------------------------------------------------------------
 
 Installation
 ------------
