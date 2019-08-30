@@ -6,6 +6,8 @@ status](https://travis-ci.org/rafaelslins/Rclust.svg?branch=master)](https://tra
 status](https://ci.appveyor.com/api/projects/status/github/rafaelslins/Rclust?branch=master&svg=true)](https://ci.appveyor.com/project/rafaelslins/Rclust)
 [![Codecov test
 coverage](https://codecov.io/gh/rafaelslins/Rclust/branch/master/graph/badge.svg)](https://codecov.io/gh/rafaelslins/Rclust?branch=master)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
 
 Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
 =======================================================================================
