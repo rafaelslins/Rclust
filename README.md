@@ -3,8 +3,8 @@
 Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
 =======================================================================================
 
-[![Travis-CI Build
-Status](https://travis-ci.org/rafaelslins/Rclust.svg?branch=master)](https://travis-ci.org/rafaelslins/Rclust)
+[![Travis build
+status](https://travis-ci.org/rafaelslins/Rclust.svg?branch=master)](https://travis-ci.org/rafaelslins/Rclust)
 
 Installation
 ------------
