@@ -1,10 +1,12 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
-=======================================================================================
-
 [![Travis build
 status](https://travis-ci.org/rafaelslins/Rclust.svg?branch=master)](https://travis-ci.org/rafaelslins/Rclust)
+[![AppVeyor build
+status](https://ci.appveyor.com/api/projects/status/github/rafaelslins/Rclust?branch=master&svg=true)](https://ci.appveyor.com/project/rafaelslins/Rclust)
+
+Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
+=======================================================================================
 
 Installation
 ------------
