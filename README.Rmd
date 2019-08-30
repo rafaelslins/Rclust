@@ -12,7 +12,8 @@ knitr::opts_chunk$set(
  fig.path = "README-"
 )
 ```
-## Rclust <img src="tools/Rclust-logo-small.png" align="right" />
+
+# Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
 
 ## Installation
 
