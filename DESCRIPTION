@@ -15,3 +15,5 @@ License: GPL (>= 2)
 URL: http://github.com/rafaelslins/Rclust
 LazyData: true
 RoxygenNote: 6.1.1
+Suggests: 
+    covr
