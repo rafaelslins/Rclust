@@ -7,7 +7,7 @@ status](https://ci.appveyor.com/api/projects/status/github/rafaelslins/Rclust?br
 [![Codecov test
 coverage](https://codecov.io/gh/rafaelslins/Rclust/branch/master/graph/badge.svg)](https://codecov.io/gh/rafaelslins/Rclust?branch=master)
 [![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
+maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 Rclust <img src="man/figures/Rclust-logo-small.png" align="right" alt="" width="120" />
 =======================================================================================
