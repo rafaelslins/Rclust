@@ -1,6 +1,6 @@
 #' Clustering Algorithm to HDLSS data.
 #'
-#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param data A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
 #' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
 #' @param n.cores A number processor cores (see detectCores).
 #' @param ... not used.
@@ -18,17 +18,24 @@
 #' @importFrom parallel clusterExport makeCluster parApply stopCluster
 #' @export
 
-ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
+ppclust_h <- function(data, alpha, n.cores = 1, ...) {
 
-  if (any(apply(dataset, 2, is.numeric) == FALSE))
-    stop('dataset contains non-numeric values')
+  if(!is.data.frame(data) & !is.matrix(data))
+    stop('the data should be a numeric matrix or data frame with all numeric columns')
   
-  if (alpha > 0 & alpha < 1)
-    stop("'alpha' must be a real number in the range (0,1)")
+  if (any(apply(data, 2, is.numeric) == FALSE))
+    stop('the data contains non-numeric values')
+  
+  if (!(alpha > 0 & alpha < 1))
+    stop("no valid value for 'alpha'. For help see ?ppclust")
+  
+  sample.size <- apply(data, 1, function(x) length(x[!is.na(x)]))
+  
+  if(any(sample.size < 2))
+    stop("all sample sizes must be larger than 2")
 
-  anovarank <- function(data, colms, cols4, colv22, coltal2)
+  anovaRank <- function(data, colms, cols4, colv22, coltal2)
   {
-    if (is.vector(data)) return(1)
     sigma4 <- data[, cols4]
     a <- nrow(data)
     Ri. <- data[, colms]
@@ -46,12 +53,12 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
     return(pv)
   }
 
-  sortmed <- function(data, colms2)
+  sortMean <- function(data, colms2)
   {
     data[order(data[, colms2]), ]
   }
 
-  sigma4est <- function(x)
+  computeSigma4 <- function(x)
   {
     n <- length(x)
     if (n > 1) {
@@ -99,7 +106,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
     }
   }
 
-  groupopt <- function(data, colgr, alpha)
+  groupOpt <- function(data, colgr, alpha)
   {
     n <- length(unique(data[, colgr]))
     m <- matrix(0, nrow = n, ncol = n)
@@ -110,7 +117,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
       indices <- indices[order(indices[, 2], indices[, 1]), ]
     }
     pvs <- apply(indices, 1, function(x)
-      anovarank(data[data[, colgr] == x[1] |
+      anovaRank(data[data[, colgr] == x[1] |
                        data[, colgr] == x[2], ], cms, cs4, cv22, ctal2))
     m[lower.tri(m)] <- pvs
     mpv <- max(m, na.rm = T)
@@ -127,7 +134,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
       indices <- matrix()
       indices <- cbind(rep(n, (n - 1)), 1:(n - 1))
       pvs <- apply(indices, 1, function(x)
-        anovarank(data[data[, colgr] == x[1] |
+        anovaRank(data[data[, colgr] == x[1] |
                          data[, colgr] == x[2], ], cms, cs4, cv22, ctal2))
       m <- try(rbind(m, pvs), silent = T)
       m <- cbind(m, numeric(nrow(m)))
@@ -138,11 +145,11 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
     m <- matrix(NA, nrow = n, ncol = n)
     indices <- cbind(rep(2:n, 1:(n - 1)), sequence(1:(n - 1)))
     pvs <- apply(indices, 1, function(x)
-      anovarank(data[data[,colgr]==x[1]|data[,colgr]==x[2],], cms, cs4, cv22, ctal2))
+      anovaRank(data[data[,colgr]==x[1]|data[,colgr]==x[2],], cms, cs4, cv22, ctal2))
     m[lower.tri(m)] <- pvs
     indices <- cbind(1:n, 1:n)
     pvs <- apply(indices, 1, function(x)
-      anovarank(data[data[,colgr]==x[1]|data[,colgr]==x[2],], cms, cs4, cv22, ctal2))
+      anovaRank(data[data[,colgr]==x[1]|data[,colgr]==x[2],], cms, cs4, cv22, ctal2))
     diag(m) <- pvs
     m <- as.data.frame(matrix(format.pval(c(m), digits = 6),
                               nrow = n, ncol = n))
@@ -156,16 +163,16 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
   }
 
   cl <- makeCluster(n.cores)
-  ranked.data <- matrix(rank(c(as.matrix(dataset)), na.last = 'keep'),
-                        nrow = nrow(dataset), ncol = ncol(dataset))
-  ncole <- ncol(ranked.data)
-  nrowe <- nrow(ranked.data)
-  environment(sigma4est) <- .GlobalEnv
-  clusterExport(cl, varlist = c("sigma4est"), envir = environment())
+  rankData <- matrix(rank(c(as.matrix(data)), na.last = 'keep'),
+                        nrow = nrow(data), ncol = ncol(data))
+  ncole <- ncol(rankData)
+  nrowe <- nrow(rankData)
+  environment(computeSigma4) <- .GlobalEnv
+  clusterExport(cl, varlist = c("computeSigma4"), envir = environment())
 
-  X <- parApply(cl, ranked.data, 1, function(x) {
+  X <- parApply(cl, rankData, 1, function(x) {
     x1 <- x[!is.na(x)]
-    c(sigma4est(x1), var(x1), length(x1), mean(x1))
+    c(computeSigma4(x1), var(x1), length(x1), mean(x1))
   })
   X <- t(X)
   sigma4 <- X[, 1]
@@ -186,7 +193,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
   fend <- nrowe
   g <- 1
 
-  pvalue <- do.call('anovarank', list(ppmatrix, cms, cs4, cv22, ctal2))
+  pvalue <- anovaRank(ppmatrix, cms, cs4, cv22, ctal2)
 
   if (pvalue > alpha) {
     stopCluster(cl)
@@ -195,7 +202,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
                 P.values = pvalue))
   } else{
 
-    ppmatrix <- do.call('sortmed',list(ppmatrix, cms))
+    ppmatrix <- sortMean(ppmatrix, cms)
     mid <- ppmatrix[c(1, fend), cms]
     new.mid <- c()
     k <- 3
@@ -206,16 +213,15 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
     pb <- txtProgressBar(min = 0, max = fend, style = 3)
     while (fstart <= fend) {
       mid <- matrix(c(mid, new.mid), ncol = 1)
-      groups <- do.call('partition', list(ppmatrix[fstart:fend, ], mid, cms))
+      groups <- partition(ppmatrix[fstart:fend, ], mid, cms)
       ptt <- groups$pt
       mid <- groups$cts
       mg <- 0
       pvalue <- numeric()
 
       for (i in 1:length(unique(ptt))) {
-        pvalue[i] <- do.call('anovarank',
-                             list(ppmatrix[c(fstart - 1 + which(ptt == i)), ],
-                                  cms, cs4, cv22, ctal2))
+        pvalue[i] <- anovaRank(ppmatrix[c(fstart - 1 + which(ptt == i)), ],
+                                  cms, cs4, cv22, ctal2)
         if (pvalue[i] > alpha**(1/(2*pi)) | is.nan(pvalue[i])) {
           ppmatrix[c(fstart - 1 + which(ptt == i)), cgr] <- g
           g <- g + 1
@@ -241,7 +247,7 @@ ppclust_h <- function(dataset, alpha, n.cores = 1, ...) {
 
   stopCluster(cl)
 
-  resul <- do.call('groupopt', list(ppmatrix, cgr, alpha))
+  resul <- groupOpt(ppmatrix, cgr, alpha)
   ppmatrix[, cgr] <- resul$cluster
 
   ppmatrix <- ppmatrix[order(ppmatrix[, cgr]), ]

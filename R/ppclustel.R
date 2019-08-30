@@ -19,7 +19,7 @@ ppclustel <- function(dataset, id, rep, alpha, ...) {
   if (any(apply(dataset, 2, is.numeric) == FALSE))
     stop('dataset contains non-numeric values')
   
-  if (alpha > 0 & alpha < 1)
+  if (!(alpha > 0 & alpha < 1))
     stop("'alpha' must be a real number in the range (0,1)")
   
   anovalong <- function(resp, b)

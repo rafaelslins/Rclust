@@ -4,10 +4,10 @@
 \alias{ppclust_h}
 \title{Clustering Algorithm to HDLSS data.}
 \usage{
-ppclust_h(dataset, alpha, n.cores = 1, ...)
+ppclust_h(data, alpha, n.cores = 1, ...)
 }
 \arguments{
-\item{dataset}{A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).}
+\item{data}{A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).}
 
 \item{alpha}{A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.}
 
