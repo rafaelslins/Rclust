@@ -21,14 +21,17 @@ globalVariables(c("data.table","as.data.table"))
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 
-ppclust <- function(data, alpha, ...) {
-
+ppclust <- function(data,
+                    alpha,
+                    ...)
+{
+  
   if(!is.data.frame(data) & !is.matrix(data))
     stop('the data should be a numeric matrix or data frame with all numeric columns')
   
   if (any(apply(data, 2, is.numeric) == FALSE))
     stop('the data contains non-numeric values')
-
+  
   if (!(alpha > 0 & alpha < 1))
     stop("no valid value for 'alpha'. For help see ?ppclust")
   
@@ -38,7 +41,7 @@ ppclust <- function(data, alpha, ...) {
     stop("all sample sizes must be larger than 2")
   
   rankData <- matrix(rank(c(as.matrix(data)), na.last = 'keep'),
-                       nrow = nrow(data), ncol = ncol(data))
+                     nrow = nrow(data), ncol = ncol(data))
   rankData <- as.data.table(rankData)
   
   nrowe <- nrow(rankData)
@@ -58,14 +61,14 @@ ppclust <- function(data, alpha, ...) {
                        colts = 0)
   ppData <- sortMedian(rankData, ppData)
   ppData <- sortCenter(ppData)
-  pvalue <- anovaRank(ppData[tstart:tend, ])
-
-  if (pvalue > alpha) {
+  pValue <- anovaRank(ppData[tstart:tend, ])
+  
+  if (pValue > alpha) {
     ppData[, "gr"] <- 1
-    return(list(cluster = ppData[, "gr"],
-                P.values = pvalue))
+    return(list(cluster = ppData[, gr],
+                P.values = pValue))
   } else{
-
+    
     cat('clustering ... \n')
     L <- (tend - tstart + 1) / 2
     tend <- tstart + floor(L - 1)
@@ -75,35 +78,35 @@ ppclust <- function(data, alpha, ...) {
         ppData[tstart, "gr"] <- 0
         tstart <- tstart + 1
       } else{
-        if (pvalue > alpha) g <- g + 1
-
+        if (pValue > alpha) g <- g + 1
+        
         ppData[, "colts"] <- 0
-        j1 <- ppData[, "colts"]
+        j1 <- ppData[, colts]
         j1[which(tstart <= c(1:nrowe) & c(1:nrowe) <= tend)] <- 1
         ppData[, "colts"] <- j1
-
-        n <- sum(ppData[, "colts"])
-
+        
+        n <- sum(ppData[, colts])
+        
         if (n == 1){
           ppData[tstart, "gr"] <- 0
           tstart <- tend + 1
           tend <- nrowe
           testpp <- -1
         }
-
-        ppDataSubset <- ppData[ppData[, "colts"] != 0, ]
-        if (testpp == 0) pvalue <- anovaRank(ppDataSubset)
-
-        if (pvalue > alpha) {
-          j2 <- ppData[, "gr"]
+        
+        ppDataSubset <- ppData[ppData[, colts] != 0, ]
+        if (testpp == 0) pValue <- anovaRank(ppDataSubset)
+        
+        if (pValue > alpha) {
+          j2 <- ppData[, gr]
           j2[which(tstart <= c(1:nrowe) & c(1:nrowe) <= tend)] <- g
           ppData[, "gr"] <- j2
-
+          
           tstart <- tend + 1
           tend <- nrowe
           setTxtProgressBar(pb, tstart)
-          resul <- indtest(ppData, tstart, nrowe, g, pvalue, alpha)
-
+          resul <- indTest(ppData, tstart, nrowe, g, pValue, alpha)
+          
           tstart <- resul$st
           ppData <- resul$data
           setTxtProgressBar(pb, tstart)
@@ -117,7 +120,7 @@ ppclust <- function(data, alpha, ...) {
     setTxtProgressBar(pb, nrowe)
     close(pb)
   }
-
+  
   ppData <- ppData[order(ppData$gr), ]
   groupclass <- ppData[, 1:3]
   groupclass0 <- groupclass[groupclass$gr == 0, ]
@@ -147,14 +150,14 @@ ppclust <- function(data, alpha, ...) {
   m <- as.data.frame(matrix(format.pval(c(m), digits = 6), nrow = n, ncol = n))
   colnames(m) <- st:en
   row.names(m) <- colnames(m)
- return(list(cluster = ppData[, "gr"],
-             P.values = m))
+  return(list(cluster = ppData[, gr],
+              P.values = m))
 }
 
 
 # Internal functions ------------------------------------------------------------------------
 
-anovaRank <- function(x, ...)
+anovaRank <- function(x)
 {
   meang <- x[, "mean"]
   varg <- x[, "var"]
@@ -171,7 +174,7 @@ anovaRank <- function(x, ...)
   return(pv)
 }
 
-sortMedian <- function(rank.data, pp.data, ...)
+sortMedian <- function(rank.data, pp.data)
 {
   rank.data[is.na(rank.data) == T] <- nrow(rank.data) + 1000
   medians <- apply(rank.data, 1, function(x) median(x, na.rm = T))
@@ -179,7 +182,7 @@ sortMedian <- function(rank.data, pp.data, ...)
   pp.data[order(medians), ]
 }
 
-sortCenter <- function(x, ...)
+sortCenter <- function(x)
 {
   nr <- nrow(x)
   j1 <- numeric(nr)
@@ -190,7 +193,7 @@ sortCenter <- function(x, ...)
   x[order(j1, x[, "median"]), ]
 }
 
-computeSigma4 <- function(data, ...)
+computeSigma4 <- function(data)
 {
   sig4hat <- function(x, n) (sum((x - mean(x)) ** 2) / n) ** 2
   
@@ -214,11 +217,11 @@ computeSigma4 <- function(data, ...)
   return(sigma4)
 }
 
-indtest <- function(data, st, nrowe, g, pvalue, alpha, ...)
+indTest <- function(data, st, nrowe, g, pValue, alpha)
 {
   data[, "colts"] <- 0
-  j1 <- data[, "colts"]
-  j1[data[, "gr"] == g] <- 1
+  j1 <- data[, colts]
+  j1[data[, gr] == g] <- 1
   data[, "colts"] <- j1
   count <- 0
   
@@ -227,16 +230,16 @@ indtest <- function(data, st, nrowe, g, pvalue, alpha, ...)
   
   for (i in st:nrowe) {
     data[i, "colts"] <- 1
-    n <- sum(data[, "colts"])
-    data2 <- data[data[, "colts"] != 0, ]
-    pvalue <- anovaRank(data2)
+    n <- sum(data[, colts])
+    data2 <- data[data[, colts] != 0, ]
+    pValue <- anovaRank(data2)
     if (pvalue > alpha)
       data[i, "gr"] <- g
     else
       data[i, "colts"] <- 0
   }
-  data <- data[order(data[, "gr"]), ]
-  count <- sum(data[, "gr"] <= g)
+  data <- data[order(data[, gr]), ]
+  count <- sum(data[, gr] <= g)
   st <- count + 1
   list(st = st, data = as.data.table(data))
 }
