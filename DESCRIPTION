@@ -18,4 +18,4 @@ Suggests:
     testthat
 URL: http://github.com/rafaelslins/Rclust
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2

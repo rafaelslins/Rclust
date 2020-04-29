@@ -27,6 +27,106 @@ ppclustel_h <- function(dataset,
                         ...)
 {
   
+  
+  anovaLong <- function(data, t1, tb)
+  {
+    a <- nrow(data)
+    b <- length(t1:tb)
+    xpjp <- as.numeric(apply(data[, t1:tb], 2, function(x) mean(x, na.rm = T)))
+    msp <- c(apply(data[, t1:tb],1, function(x) (x - xpjp)**2))
+    msphi <- sum(msp) / ((a - 1) * b)
+    mse <- sum(data[, 3]) / a
+    cov2 <- sum(data[, 4]) / a
+    pv <- 1 - pnorm(sqrt(a * b) * (msphi - mse) / sqrt(cov2))
+    return(pv)
+  }
+  
+  groupAnovaLong <- function(data, colgr, t1, tb, alpha)
+  {
+    n <- length(unique(data[, colgr]))
+    m <- matrix(0, nrow = n, ncol = n)
+    
+    indices <- cbind(rep(2:n, 1:(n - 1)), sequence(1:(n - 1)))
+    if (nrow(indices) == 1){
+      indices <- matrix(indices[order(indices[, 2], indices[, 1]), ], ncol = 2)
+    } else{
+      indices <- indices[order(indices[, 2], indices[, 1]), ]
+    }
+    pvs <- apply(indices, 1, function(x)
+      anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
+    
+    m[lower.tri(m)] <- pvs
+    mpv <- max(m, na.rm = T)
+    while (mpv >= alpha) {
+      idxs <- c(which(m == max(m, na.rm = T), arr.ind = T))[1:2]
+      x <- data[, colgr]
+      x[x == max(idxs)] <- n + 1
+      x[x == min(idxs)] <- n + 1
+      x <- as.numeric(factor(x))
+      data[, colgr] <- x
+      m <- m[-idxs, -idxs]
+      
+      n <- n - 1
+      indices <- matrix()
+      indices <- cbind(rep(n, (n - 1)), 1:(n - 1))
+      pvs <- apply(indices, 1, function(x)
+        anovaLong(data[data[, colgr] == x[1] |
+                         data[, colgr] == x[2], ], t1, tb))
+      m <- try(rbind(m, pvs), silent = T)
+      m <- cbind(m, numeric(nrow(m)))
+      mpv <- max(m, na.rm = T)
+    }
+    
+    n <- length(unique(data[, colgr]))
+    m <- matrix(NA, nrow = n, ncol = n)
+    indices <- cbind(rep(2:n, 1:(n - 1)), sequence(1:(n - 1)))
+    pvs <- apply(indices, 1, function(x)
+      anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
+    m[lower.tri(m)] <- pvs
+    indices <- cbind(1:n, 1:n)
+    pvs <- apply(indices, 1, function(x)
+      anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
+    diag(m) <- pvs
+    m <- as.data.frame(matrix(format.pval(c(m), digits = 6),
+                              nrow = n, ncol = n))
+    colnames(m) <- 1:n
+    return(list(cluster = data[, cgr], pv.matrix = m))
+  }
+  
+  
+  partition <- function(data, cts, t1, tb)
+  {
+    if (nrow(data) < 2) {
+      return(list(pt = 1, cts = cts))
+    } else{
+      datax <- as.matrix(data[, t1:tb])
+      count <- list(cts, cts + 1)
+      n.int <- 0
+      while (!all(count[[1]] %in% count[[2]]) & n.int <= 10) {
+        mst.p <- apply(cts, 1, function(x) {
+          dif2 <- t(t(datax) - as.numeric(x)) ** 2
+          dif2 %*% matrix(rep(1, ncol(dif2)))
+        })
+        pt <- apply(mst.p, 1, function(x) which.min(x))
+        cts <- aggregate(datax, list(pt), function(x) mean(x))[, -1]
+        for (i in 1:nrow(cts)) {
+          a <- t(t(datax) - as.numeric(cts[i, ])) ** 2
+          a <- which.min(a %*% matrix(rep(1, ncol(a))))
+          cts[i, ] <- datax[a, ]
+        }
+        count[[1]] <- count[[2]]
+        count[[2]] <- cts
+        n.int <- n.int + 1
+      }
+      return(list(pt = as.numeric(pt), cts = cts))
+    }
+  }
+  
+  fib <- function(fibseq, x)
+  {
+    c(fibseq, fibseq[x-1] + fibseq[x-2])
+  }
+  
   if (any(apply(dataset, 2, is.numeric) == FALSE))
     stop('dataset contains non-numeric values')
   
@@ -108,7 +208,7 @@ ppclustel_h <- function(dataset,
       pValue <- c()
       for (i in 1:length(unique(ptt))) {
         pValue[i] <- anovaLong(ppData[c(fstart - 1 + which(ptt == i)), ], t1, tb)
-        if (pValue[i] > alpha**(1/(2*pi)) | is.nan(pValue[i])) {
+        if (pValue[i] > alpha | is.nan(pValue[i])) {
           ppData[c(fstart - 1 + which(ptt == i)), cgr] <- g
           g <- g + 1
           mg <- 1
@@ -126,13 +226,13 @@ ppclustel_h <- function(dataset,
       new.mid <- ppData[fstart:(fstart - 1 + fibseq[k]), t1:tb]
       setTxtProgressBar(pb, fstart)
     }
-    setTxtProgressBar(pb, fend)
-    close(pb)
     
     stopCluster(cl)
     
     ppData[, cgr] <- as.numeric(factor(ppData[, cgr]))
-    resul <- groupOpt(ppData, cgr, t1, tb, alpha)
+    resul <- groupAnovaLong(ppData, cgr, t1, tb, alpha)
+    setTxtProgressBar(pb, fend)
+    close(pb)
     ppData[, cgr] <- resul$cluster
     ppData <- ppData[order(ppData[, cid]),]
     
@@ -141,105 +241,4 @@ ppclustel_h <- function(dataset,
   }
 }
 
-
-# Internal functions ------------------------------------------------------------------------
-
-anovaLong <- function(data, t1, tb)
-{
-  a <- nrow(data)
-  b <- length(t1:tb)
-  xpjp <- as.numeric(apply(data[, t1:tb], 2, function(x) mean(x, na.rm = T)))
-  msp <- c(apply(data[, t1:tb],1, function(x) (x - xpjp)**2))
-  msphi <- sum(msp) / ((a - 1) * b)
-  mse <- sum(data[, 3]) / a
-  cov2 <- sum(data[, 4]) / a
-  pv <- 1 - pnorm(sqrt(a * b) * (msphi - mse) / sqrt(cov2))
-  return(pv)
-}
-
-groupOpt <- function(data, colgr, t1, tb, alpha)
-{
-  n <- length(unique(data[, colgr]))
-  m <- matrix(0, nrow = n, ncol = n)
-  
-  indices <- cbind(rep(2:n, 1:(n - 1)), sequence(1:(n - 1)))
-  if (nrow(indices) == 1){
-    indices <- matrix(indices[order(indices[, 2], indices[, 1]), ], ncol = 2)
-  } else{
-    indices <- indices[order(indices[, 2], indices[, 1]), ]
-  }
-  pvs <- apply(indices, 1, function(x)
-    anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
-  
-  m[lower.tri(m)] <- pvs
-  mpv <- max(m, na.rm = T)
-  while (mpv >= alpha) {
-    idxs <- c(which(m == max(m, na.rm = T), arr.ind = T))[1:2]
-    x <- data[, colgr]
-    x[x == max(idxs)] <- n + 1
-    x[x == min(idxs)] <- n + 1
-    x <- as.numeric(factor(x))
-    data[, colgr] <- x
-    m <- m[-idxs, -idxs]
-    
-    n <- n - 1
-    indices <- matrix()
-    indices <- cbind(rep(n, (n - 1)), 1:(n - 1))
-    pvs <- apply(indices, 1, function(x)
-      anovaLong(data[data[, colgr] == x[1] |
-                       data[, colgr] == x[2], ], t1, tb))
-    m <- try(rbind(m, pvs), silent = T)
-    m <- cbind(m, numeric(nrow(m)))
-    mpv <- max(m, na.rm = T)
-  }
-  
-  n <- length(unique(data[, colgr]))
-  m <- matrix(NA, nrow = n, ncol = n)
-  indices <- cbind(rep(2:n, 1:(n - 1)), sequence(1:(n - 1)))
-  pvs <- apply(indices, 1, function(x)
-    anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
-  m[lower.tri(m)] <- pvs
-  indices <- cbind(1:n, 1:n)
-  pvs <- apply(indices, 1, function(x)
-    anovaLong(data[data[, colgr] == x[1] | data[, colgr] == x[2], ], t1, tb))
-  diag(m) <- pvs
-  m <- as.data.frame(matrix(format.pval(c(m), digits = 6),
-                            nrow = n, ncol = n))
-  colnames(m) <- 1:n
-  return(list(cluster = data[, cgr], pv.matrix = m))
-}
-
-
-partition <- function(data, cts, t1, tb)
-{
-  if (nrow(data) < 2) {
-    return(list(pt = 1, cts = cts))
-  } else{
-    datax <- as.matrix(data[, t1:tb])
-    count <- list(cts, cts + 1)
-    n.int <- 0
-    while (!all(count[[1]] %in% count[[2]]) & n.int < 13) {
-      mst.p <- apply(cts, 1, function(x) {
-        dif2 <- t(t(datax) - as.numeric(x)) ** 2
-        dif2 %*% matrix(rep(1, ncol(dif2)))
-      })
-      pt <- apply(mst.p, 1, function(x) which.min(x))
-      cts <- aggregate(datax, list(pt), function(x) mean(x))[, -1]
-      for (i in 1:nrow(cts)) {
-        a <- t(t(datax) - as.numeric(cts[i, ])) ** 2
-        a <- which.min(a %*% matrix(rep(1, ncol(a))))
-        cts[i, ] <- datax[a, ]
-      }
-      count[[1]] <- count[[2]]
-      count[[2]] <- cts
-      n.int <- n.int + 1
-    }
-    return(list(pt = as.numeric(pt), cts = cts))
-  }
-}
-
-fib <- function(fibseq, x)
-{
-  c(fibseq, fibseq[x-1] + fibseq[x-2])
-}
 
