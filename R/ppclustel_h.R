@@ -27,6 +27,7 @@ ppclustel_h <- function(dataset,
                         ...)
 {
   
+  
   anovaLong <- function(data, t1, tb)
   {
     a <- nrow(data)
@@ -239,4 +240,5 @@ ppclustel_h <- function(dataset,
                 P.values = resul$pv.matrix))
   }
 }
+
 
