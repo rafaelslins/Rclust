@@ -20,11 +20,17 @@ globalVariables(c("gr","colts","cgr","cid","cms","ms"))
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 
+
 ppclust <- function(data,
                     alpha,
                     ...)
 {
-  
+  if (any(apply(dataset, 2, is.numeric) == FALSE))
+    stop('dataset contains non-numeric values')
+
+  if (!(alpha > 0 & alpha < 1))
+    stop("enter a valid 'alpha'. See ?ppclust.")
+
   anovaRank <- function(x)
   {
     meang <- x[, "mean"]
