@@ -34,6 +34,11 @@ library(Rclust)
     Clustering Algorithm for High Dimensional Low Sample Size Data. SAS
     Global Forum. Paper 283, 2009.
 
-  - H. Wang and M. G. Akritas. Rank tests for anova with large number of
-    factor levels. Journal of Nonparametric Statistics, 16(3-4):563–589,
-    2004. URL <https://doi.org/10.1080/10485250310001624774>.
+\<\<\<\<\<\<\< HEAD - H. Wang and M. G. Akritas. Rank tests for anova
+with large number of factor levels. Journal of Nonparametric Statistics,
+16(3-4):563–589, 2004. URL
+<https://doi.org/10.1080/10485250310001624774>. ======= - H. Wang and M.
+G. Akritas. Rank tests for anova with large number of factor levels.
+Journal of Nonparametric Statistics, 16(3-4):563–589, 2004. URL
+<https://doi.org/10.1080/10485250310001624774>. \>\>\>\>\>\>\>
+656382069ce85cc46504fecf013ac5b3ba82966f

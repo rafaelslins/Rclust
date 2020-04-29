@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+<<<<<<< HEAD
 ^\.travis\.yml$
 ^appveyor\.yml$
 ^codecov\.yml$
@@ -7,3 +8,12 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+=======
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^codecov\.yml$
+^appveyor\.yml$
+^\.travis\.yml$
+^README\.Rmd$
+>>>>>>> 656382069ce85cc46504fecf013ac5b3ba82966f

@@ -1,4 +1,3 @@
-
 # Main function ------------------------------------------------------------------------
 globalVariables(c("gr","colts","cgr","cid","cms","ms","kmeans"))
 
