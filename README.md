@@ -3,8 +3,6 @@
 
 [![Travis build
 status](https://travis-ci.org/rafaelslins/Rclust.svg?branch=master)](https://travis-ci.org/rafaelslins/Rclust)
-[![AppVeyor build
-status](https://ci.appveyor.com/api/projects/status/github/rafaelslins/Rclust?branch=master&svg=true)](https://ci.appveyor.com/project/rafaelslins/Rclust)
 [![Codecov test
 coverage](https://codecov.io/gh/rafaelslins/Rclust/branch/master/graph/badge.svg)](https://codecov.io/gh/rafaelslins/Rclust?branch=master)
 [![Lifecycle:
@@ -34,11 +32,6 @@ library(Rclust)
     Clustering Algorithm for High Dimensional Low Sample Size Data. SAS
     Global Forum. Paper 283, 2009.
 
-\<\<\<\<\<\<\< HEAD - H. Wang and M. G. Akritas. Rank tests for anova
-with large number of factor levels. Journal of Nonparametric Statistics,
-16(3-4):563–589, 2004. URL
-<https://doi.org/10.1080/10485250310001624774>. ======= - H. Wang and M.
-G. Akritas. Rank tests for anova with large number of factor levels.
-Journal of Nonparametric Statistics, 16(3-4):563–589, 2004. URL
-<https://doi.org/10.1080/10485250310001624774>. \>\>\>\>\>\>\>
-656382069ce85cc46504fecf013ac5b3ba82966f
+  - H. Wang and M. G. Akritas. Rank tests for anova with large number of
+    factor levels. Journal of Nonparametric Statistics, 16(3-4):563–589,
+    2004. URL <https://doi.org/10.1080/10485250310001624774>.
