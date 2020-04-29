@@ -4,8 +4,10 @@ globalVariables(c("data.table","as.data.table"))
 
 #' @title Clustering Algorithm to HDLSS data.
 #' @description Clustering Algorithm to HDLSS data.
+
 #' @usage ppclust(data, alpha, ...) 
 #' @param data A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
+#' @param dataset A numeric matrix or data frame with all numeric columns. If a matrix or data frame, rows correspond to variables (d) and columns correspond to observations (n).
 #' @param alpha A real number in the range (0, 1) indicanting the threshold parameter to be compared with p-values in the clustering procedure.
 #' @param ... not used.
 #' 
@@ -25,6 +27,14 @@ ppclust <- function(data,
                     alpha,
                     ...)
 {
+
+ppclust <- function(dataset, alpha, ...) {
+
+  if (any(apply(dataset, 2, is.numeric) == FALSE))
+    stop('dataset contains non-numeric values')
+
+  if (!(alpha > 0 & alpha < 1))
+    stop("enter a valid 'alpha'. See ?ppclust.")
   
   if(!is.data.frame(data) & !is.matrix(data))
     stop('the data should be a numeric matrix or data frame with all numeric columns')
@@ -244,5 +254,3 @@ indTest <- function(data, st, nrowe, g, pValue, alpha)
   list(st = st, data = as.data.table(data))
 }
 
-
-# comments: use data.table package features
