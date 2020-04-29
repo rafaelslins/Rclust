@@ -23,11 +23,6 @@ globalVariables(c("data.table","as.data.table"))
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 
-ppclust <- function(data,
-                    alpha,
-                    ...)
-{
-
 ppclust <- function(dataset, alpha, ...) {
 
   if (any(apply(dataset, 2, is.numeric) == FALSE))
